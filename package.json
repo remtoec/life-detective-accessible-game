@@ -1,0 +1,17 @@
+{
+  "name": "life-detective-accessible-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "供小一視障學生使用的繁體中文生物網頁遊戲",
+  "scripts": {
+    "serve": "http-server . -p 4173 -c-1",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.52.0",
+    "http-server": "^14.1.1"
+  }
+}
+

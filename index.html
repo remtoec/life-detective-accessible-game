@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK" class="font-standard theme-light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="供小一視障學生使用的無障礙生物網頁遊戲，支援 VoiceOver、NVDA、鍵盤和觸控操作。"
+    >
+    <title>生命小偵探｜無障礙生物遊戲</title>
+    <script>
+      (function () {
+        try {
+          var font = localStorage.getItem("lifeDetectiveFont");
+          var theme = localStorage.getItem("lifeDetectiveTheme");
+          var root = document.documentElement;
+          if (["standard", "large", "xlarge"].includes(font)) {
+            root.className = root.className.replace(
+              /font-(standard|large|xlarge)/,
+              "font-" + font
+            );
+          }
+          if (["light", "dark", "yellow"].includes(theme)) {
+            root.className = root.className.replace(
+              /theme-(light|dark|yellow)/,
+              "theme-" + theme
+            );
+          }
+        } catch (error) {
+          // The game still works when storage is unavailable.
+        }
+      })();
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --page: #ffffff;
+        --surface: #ffffff;
+        --surface-soft: #f3f6ed;
+        --text: #17210f;
+        --text-soft: #35452c;
+        --border: #65745b;
+        --border-soft: #c5cfbd;
+        --accent: #3e672c;
+        --accent-strong: #28471a;
+        --on-accent: #ffffff;
+        --focus: #005fcc;
+        --success: #205e28;
+        --error: #9d241f;
+        --progress-track: #d8e1d0;
+        --sun: #f2c84b;
+        --sky: #cce9ef;
+        --leaf: #4e7b39;
+        --leaf-light: #8eb66f;
+        --earth: #806044;
+        --radius-small: 0.55rem;
+        --radius-medium: 0.9rem;
+        --radius-large: 1.4rem;
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.5rem;
+        --space-6: 2rem;
+        font-size: 20px;
+      }
+
+      :root.font-large {
+        font-size: 26px;
+      }
+
+      :root.font-xlarge {
+        font-size: 32px;
+      }
+
+      :root.theme-dark {
+        color-scheme: dark;
+        --page: #000000;
+        --surface: #111111;
+        --surface-soft: #1d1d1d;
+        --text: #ffffff;
+        --text-soft: #eeeeee;
+        --border: #d4d4d4;
+        --border-soft: #6f6f6f;
+        --accent: #ffffff;
+        --accent-strong: #ffffff;
+        --on-accent: #000000;
+        --focus: #69d2ff;
+        --success: #a9efa9;
+        --error: #ffaaa4;
+        --progress-track: #454545;
+        --sky: #1c3840;
+        --leaf: #9bc888;
+        --leaf-light: #c2dfb6;
+        --earth: #c59d7a;
+      }
+
+      :root.theme-yellow {
+        color-scheme: dark;
+        --page: #000000;
+        --surface: #090909;
+        --surface-soft: #171717;
+        --text: #ffd900;
+        --text-soft: #ffe75f;
+        --border: #ffd900;
+        --border-soft: #9d8700;
+        --accent: #ffd900;
+        --accent-strong: #ffe75f;
+        --on-accent: #000000;
+        --focus: #ffffff;
+        --success: #fff081;
+        --error: #ffb3aa;
+        --progress-track: #554900;
+        --sun: #ffd900;
+        --sky: #121212;
+        --leaf: #ffd900;
+        --leaf-light: #ffe75f;
+        --earth: #ffd900;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        min-width: 0;
+        background: var(--page);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        min-width: 0;
+        margin: 0;
+        overflow-wrap: anywhere;
+        background: var(--page);
+        color: var(--text);
+        font-family:
+          "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui,
+          sans-serif;
+        font-size: 1rem;
+        line-height: 1.65;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button,
+      label,
+      summary {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      button {
+        min-height: 2.75rem;
+        border: 0;
+        border-radius: var(--radius-small);
+        cursor: pointer;
+        font-weight: 800;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      :focus-visible {
+        outline: 0.2rem solid var(--focus);
+        outline-offset: 0.15rem;
+      }
+
+      a {
+        color: var(--accent-strong);
+        font-weight: 750;
+        text-underline-offset: 0.18em;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 100;
+        top: var(--space-3);
+        left: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        transform: translateY(-180%);
+        border: 0.12rem solid var(--text);
+        border-radius: var(--radius-small);
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .site-header {
+        border-bottom: 0.08rem solid var(--border-soft);
+        background: var(--surface);
+      }
+
+      .header-inner,
+      main,
+      .footer-inner {
+        width: min(100% - 1.5rem, 56rem);
+        margin-inline: auto;
+      }
+
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding-block: var(--space-3);
+      }
+
+      .brand {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: var(--space-3);
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 2.7rem;
+        height: 2.7rem;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 48% 48% 48% 12%;
+        background: var(--accent);
+        color: var(--on-accent);
+        transform: rotate(-8deg);
+      }
+
+      .brand-mark svg {
+        width: 1.45rem;
+        transform: rotate(8deg);
+      }
+
+      .brand-name,
+      .brand-note {
+        display: block;
+      }
+
+      .brand-name {
+        font-size: 1.08rem;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+      }
+
+      .brand-note {
+        color: var(--text-soft);
+        font-size: 0.72rem;
+        line-height: 1.35;
+      }
+
+      .settings {
+        margin-block: var(--space-4) var(--space-5);
+        padding: var(--space-4);
+        border: 0.08rem solid var(--border-soft);
+        border-radius: var(--radius-medium);
+        background: var(--surface-soft);
+      }
+
+      .settings-heading {
+        margin: 0 0 var(--space-3);
+        font-size: 1rem;
+      }
+
+      .settings-grid {
+        display: grid;
+        gap: var(--space-4);
+      }
+
+      .settings fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .settings legend {
+        margin-bottom: var(--space-2);
+        font-weight: 800;
+      }
+
+      .choice-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+      }
+
+      .setting-choice {
+        position: relative;
+        display: inline-flex;
+        min-height: 2.5rem;
+        align-items: center;
+        padding: var(--space-2) var(--space-3);
+        border: 0.08rem solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 750;
+      }
+
+      .setting-choice:has(input:checked) {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+
+      .setting-choice input {
+        width: 1.1rem;
+        height: 1.1rem;
+        margin: 0 var(--space-2) 0 0;
+        accent-color: var(--focus);
+      }
+
+      main {
+        padding-bottom: var(--space-6);
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .hero {
+        display: grid;
+        align-items: center;
+        gap: var(--space-5);
+        padding-block: var(--space-4) var(--space-6);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin: 0 0 var(--space-2);
+        color: var(--accent-strong);
+        font-size: 0.78rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+      }
+
+      .eyebrow::before {
+        width: 0.72rem;
+        height: 0.72rem;
+        border-radius: 60% 15% 60% 15%;
+        background: var(--leaf);
+        content: "";
+        transform: rotate(-25deg);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 10em;
+        margin-bottom: var(--space-3);
+        font-size: clamp(2rem, 8vw, 3.75rem);
+        line-height: 1.08;
+        letter-spacing: 0.03em;
+      }
+
+      h2 {
+        font-size: clamp(1.45rem, 5vw, 2.2rem);
+        line-height: 1.25;
+      }
+
+      .lead {
+        max-width: 35em;
+        margin-bottom: var(--space-5);
+        color: var(--text-soft);
+        font-size: 1.08rem;
+      }
+
+      .primary-button,
+      .secondary-button {
+        display: inline-flex;
+        width: fit-content;
+        max-width: 100%;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-3) var(--space-5);
+      }
+
+      .primary-button {
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+
+      .primary-button:hover:not(:disabled) {
+        background: var(--accent-strong);
+      }
+
+      .secondary-button {
+        border: 0.1rem solid var(--accent);
+        background: var(--surface);
+        color: var(--accent-strong);
+      }
+
+      .park-scene {
+        position: relative;
+        min-height: 16rem;
+        overflow: hidden;
+        border: 0.1rem solid var(--border);
+        border-radius: 48% 48% var(--radius-large) var(--radius-large);
+        background: var(--sky);
+      }
+
+      .park-scene svg {
+        position: absolute;
+        inset: auto 0 0;
+        width: 100%;
+        height: auto;
+      }
+
+      .mission-card {
+        position: absolute;
+        z-index: 1;
+        top: var(--space-4);
+        left: var(--space-4);
+        max-width: calc(100% - 2rem);
+        padding: var(--space-3) var(--space-4);
+        border: 0.08rem solid var(--border);
+        border-radius: var(--radius-medium);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
+      .info-grid {
+        display: grid;
+        gap: var(--space-4);
+        margin-bottom: var(--space-6);
+      }
+
+      .info-card {
+        padding: var(--space-5);
+        border: 0.08rem solid var(--border-soft);
+        border-radius: var(--radius-medium);
+        background: var(--surface);
+      }
+
+      .info-card h2 {
+        margin-bottom: var(--space-3);
+        font-size: 1.25rem;
+      }
+
+      .objective-list,
+      .instruction-list,
+      .learning-list {
+        margin: 0;
+        padding-left: 1.3em;
+      }
+
+      .objective-list li,
+      .instruction-list li,
+      .learning-list li {
+        margin-block: var(--space-2);
+        padding-left: var(--space-1);
+      }
+
+      .game-shell,
+      .result-shell {
+        padding-block: var(--space-4) var(--space-6);
+      }
+
+      .game-toolbar {
+        display: grid;
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
+      }
+
+      .score {
+        margin: 0;
+        font-weight: 850;
+      }
+
+      .progress-wrap {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+      }
+
+      .leaf-level {
+        display: grid;
+        width: 2.75rem;
+        height: 2.75rem;
+        flex: 0 0 auto;
+        place-items: center;
+        border-radius: 55% 15% 55% 15%;
+        background: var(--accent);
+        color: var(--on-accent);
+        font-size: 0.82rem;
+        font-weight: 900;
+        transform: rotate(-10deg);
+      }
+
+      .leaf-level span {
+        transform: rotate(10deg);
+      }
+
+      progress {
+        width: 100%;
+        height: 0.75rem;
+        overflow: hidden;
+        border: 0;
+        border-radius: 999px;
+        background: var(--progress-track);
+      }
+
+      progress::-webkit-progress-bar {
+        border-radius: 999px;
+        background: var(--progress-track);
+      }
+
+      progress::-webkit-progress-value {
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      progress::-moz-progress-bar {
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      .question-card {
+        padding: var(--space-5);
+        border: 0.1rem solid var(--border);
+        border-radius: var(--radius-large);
+        background: var(--surface);
+      }
+
+      .question-card h2 {
+        margin-bottom: var(--space-2);
+      }
+
+      .topic-label {
+        margin-bottom: var(--space-4);
+        color: var(--text-soft);
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
+      .question-illustration {
+        display: grid;
+        min-height: 8.5rem;
+        margin: 0 0 var(--space-5);
+        overflow: hidden;
+        place-items: center;
+        border-radius: var(--radius-medium);
+        background: var(--surface-soft);
+      }
+
+      .question-illustration svg {
+        width: min(100%, 18rem);
+        height: 8.5rem;
+      }
+
+      .question-form fieldset {
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .question-form legend {
+        width: 100%;
+        margin-bottom: var(--space-4);
+        font-size: 1.25rem;
+        font-weight: 900;
+        line-height: 1.45;
+      }
+
+      .answer-list {
+        display: grid;
+        gap: var(--space-3);
+      }
+
+      .answer-option {
+        display: grid;
+        min-height: 3.2rem;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        border: 0.1rem solid var(--border);
+        border-radius: var(--radius-medium);
+        background: var(--surface);
+        cursor: pointer;
+        font-weight: 750;
+      }
+
+      .answer-option:hover {
+        background: var(--surface-soft);
+      }
+
+      .answer-option:has(input:checked) {
+        border-color: var(--accent);
+        box-shadow: inset 0 0 0 0.08rem var(--accent);
+        background: var(--surface-soft);
+      }
+
+      .answer-option input {
+        width: 1.35rem;
+        height: 1.35rem;
+        margin: 0;
+        accent-color: var(--accent);
+      }
+
+      .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-top: var(--space-5);
+      }
+
+      .feedback {
+        margin-top: var(--space-5);
+        padding: var(--space-4);
+        border: 0.12rem solid currentColor;
+        border-radius: var(--radius-medium);
+        background: var(--surface-soft);
+      }
+
+      .feedback.correct {
+        color: var(--success);
+      }
+
+      .feedback.incorrect {
+        color: var(--error);
+      }
+
+      .feedback-title {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-2);
+        font-size: 1.12rem;
+        font-weight: 900;
+      }
+
+      .feedback p {
+        margin-bottom: var(--space-3);
+        color: var(--text);
+      }
+
+      .result-shell {
+        text-align: center;
+      }
+
+      .result-badge {
+        display: grid;
+        width: 6rem;
+        height: 6rem;
+        margin: 0 auto var(--space-4);
+        place-items: center;
+        border: 0.15rem solid var(--accent);
+        border-radius: 50%;
+        background: var(--surface-soft);
+        color: var(--accent-strong);
+        font-size: 2.5rem;
+      }
+
+      .result-score {
+        margin-bottom: var(--space-2);
+        font-size: 1.4rem;
+        font-weight: 900;
+      }
+
+      .result-message {
+        max-width: 34em;
+        margin: 0 auto var(--space-5);
+        color: var(--text-soft);
+      }
+
+      .learning-summary {
+        max-width: 38rem;
+        margin: 0 auto var(--space-5);
+        padding: var(--space-5);
+        border: 0.08rem solid var(--border);
+        border-radius: var(--radius-medium);
+        background: var(--surface);
+        text-align: left;
+      }
+
+      .learning-summary h3 {
+        margin-bottom: var(--space-3);
+      }
+
+      .site-footer {
+        border-top: 0.08rem solid var(--border-soft);
+        background: var(--surface-soft);
+      }
+
+      .footer-inner {
+        padding-block: var(--space-4);
+        color: var(--text-soft);
+        font-size: 0.78rem;
+      }
+
+      .footer-inner p {
+        margin: 0;
+      }
+
+      .sr-only {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+      }
+
+      @media (min-width: 48rem) {
+        .settings-grid {
+          grid-template-columns: 0.8fr 1.2fr;
+        }
+
+        .hero {
+          grid-template-columns: 1.08fr 0.92fr;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .game-toolbar {
+          grid-template-columns: 1fr auto;
+          align-items: end;
+        }
+      }
+
+      @media (max-width: 30rem) {
+        .header-inner {
+          align-items: flex-start;
+        }
+
+        .brand-note {
+          display: none;
+        }
+
+        .choice-row {
+          display: grid;
+        }
+
+        .setting-choice,
+        .primary-button,
+        .secondary-button {
+          width: 100%;
+        }
+
+        .question-card {
+          padding: var(--space-4);
+        }
+
+        .question-illustration {
+          min-height: 6rem;
+        }
+
+        .question-illustration svg {
+          height: 6rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+
+      @media print {
+        .skip-link,
+        .settings,
+        button {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">跳到主要內容</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false">
+              <path
+                d="M6 23C7 12 14 6 27 5c-1 13-7 20-18 21"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="3"
+              />
+              <path
+                d="M8 25c5-7 10-11 17-16"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-width="3"
+              />
+            </svg>
+          </span>
+          <span>
+            <span class="brand-name">生命小偵探</span>
+            <span class="brand-note">香港公園生物任務</span>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section class="settings" aria-labelledby="settings-heading">
+        <h2 class="settings-heading" id="settings-heading">顯示設定</h2>
+        <div class="settings-grid">
+          <fieldset>
+            <legend>字型大小</legend>
+            <div class="choice-row">
+              <label class="setting-choice">
+                <input type="radio" name="font-size" value="standard">
+                <span>標準字型</span>
+              </label>
+              <label class="setting-choice">
+                <input type="radio" name="font-size" value="large">
+                <span>大字型</span>
+              </label>
+              <label class="setting-choice">
+                <input type="radio" name="font-size" value="xlarge">
+                <span>特大字型</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>顏色對比</legend>
+            <div class="choice-row">
+              <label class="setting-choice">
+                <input type="radio" name="contrast" value="light">
+                <span>白底黑字</span>
+              </label>
+              <label class="setting-choice">
+                <input type="radio" name="contrast" value="dark">
+                <span>黑底白字</span>
+              </label>
+              <label class="setting-choice">
+                <input type="radio" name="contrast" value="yellow">
+                <span>黑底黃字</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+
+      <section id="home-view" aria-labelledby="home-title">
+        <div class="hero">
+          <div>
+            <p class="eyebrow">香港公園生物任務</p>
+            <h1 id="home-title">生命小偵探</h1>
+            <p class="lead">
+              戴上你的偵探帽，在 12 個小任務中認識動物、植物和非生物。
+              慢慢聽、仔細想，答錯也可以得到提示再試一次！
+            </p>
+            <button class="primary-button" id="start-button" type="button">
+              開始遊戲
+            </button>
+          </div>
+
+          <div
+            class="park-scene"
+            role="img"
+            aria-label="香港公園裏有一棵茂盛的榕樹、一隻麻雀、草地和石頭。"
+          >
+            <div class="mission-card" aria-hidden="true">
+              今日任務：尋找有生命的朋友
+            </div>
+            <svg
+              viewBox="0 0 520 360"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="425" cy="65" r="34" fill="var(--sun)" />
+              <path
+                d="M0 220C100 175 190 214 270 194c92-23 171-2 250 35v131H0Z"
+                fill="var(--leaf-light)"
+              />
+              <path
+                d="M183 294c12-95 12-139 4-186h43c-8 58-4 117 12 186Z"
+                fill="var(--earth)"
+              />
+              <g fill="var(--leaf)">
+                <circle cx="136" cy="119" r="62" />
+                <circle cx="198" cy="78" r="73" />
+                <circle cx="269" cy="119" r="64" />
+                <circle cx="207" cy="146" r="72" />
+              </g>
+              <g transform="translate(342 142)">
+                <ellipse cx="0" cy="11" rx="34" ry="25" fill="var(--text)" />
+                <circle cx="28" cy="-3" r="17" fill="var(--text)" />
+                <path d="m43-3 24 8-24 8Z" fill="var(--sun)" />
+                <circle cx="33" cy="-7" r="3" fill="var(--surface)" />
+                <path
+                  d="M-27 4-57-8l20 27m30 17-5 19m22-20 4 18"
+                  fill="none"
+                  stroke="var(--text)"
+                  stroke-linecap="round"
+                  stroke-width="6"
+                />
+              </g>
+              <g fill="var(--border)">
+                <ellipse cx="73" cy="293" rx="36" ry="20" />
+                <ellipse cx="448" cy="310" rx="49" ry="25" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <article class="info-card">
+            <h2>你會學到</h2>
+            <ul class="objective-list">
+              <li>動物和植物都是有生命的。</li>
+              <li>香港常見的動物和植物。</li>
+              <li>生物需要空氣、水和合適的環境。</li>
+              <li>動物和植物的簡單構造和特徵。</li>
+              <li>尊重和愛護動植物的方法。</li>
+            </ul>
+          </article>
+
+          <article class="info-card">
+            <h2>遊戲方法</h2>
+            <ol class="instruction-list">
+              <li>每關聽或閱讀一條問題。</li>
+              <li>選擇一個答案，再按「提交答案」。</li>
+              <li>首次答對得 1 分；答錯會有提示，可再試一次。</li>
+              <li>完成 12 關便可成為生命小偵探。</li>
+            </ol>
+          </article>
+        </div>
+      </section>
+
+      <section
+        class="game-shell"
+        id="game-view"
+        aria-label="遊戲關卡"
+        hidden
+      >
+        <div class="game-toolbar">
+          <div class="progress-wrap">
+            <div class="leaf-level" aria-hidden="true">
+              <span id="level-number">1</span>
+            </div>
+            <progress
+              id="game-progress"
+              max="12"
+              value="1"
+              aria-label="遊戲進度"
+            ></progress>
+          </div>
+          <p
+            class="score"
+            id="score-display"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            目前得分：0 分，共 12 分
+          </p>
+        </div>
+
+        <article class="question-card">
+          <h2 id="level-heading" tabindex="-1">第 1 關，共 12 關</h2>
+          <p class="topic-label" id="topic-label"></p>
+
+          <div
+            class="question-illustration"
+            id="question-illustration"
+            role="img"
+          ></div>
+
+          <form class="question-form" id="question-form">
+            <fieldset id="answer-fieldset">
+              <legend id="question-text" tabindex="-1"></legend>
+              <div class="answer-list" id="answer-list"></div>
+            </fieldset>
+            <div class="form-actions">
+              <button
+                class="primary-button"
+                id="submit-button"
+                type="submit"
+                disabled
+              >
+                提交答案
+              </button>
+            </div>
+          </form>
+
+          <div
+            class="feedback"
+            id="feedback"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            tabindex="-1"
+            hidden
+          ></div>
+        </article>
+      </section>
+
+      <section
+        class="result-shell"
+        id="result-view"
+        aria-labelledby="result-heading"
+        hidden
+      >
+        <div class="result-badge" aria-hidden="true">★</div>
+        <h2 id="result-heading" tabindex="-1">闖關完成！</h2>
+        <p class="result-score" id="result-score"></p>
+        <p class="result-message" id="result-message"></p>
+
+        <section class="learning-summary" aria-labelledby="learning-heading">
+          <h3 id="learning-heading">你已經學會</h3>
+          <ul class="learning-list">
+            <li>動物和植物都有生命。</li>
+            <li>生物需要空氣、水和合適的環境。</li>
+            <li>不同生物有不同的構造和活動方式。</li>
+            <li>麻雀和榕樹是香港常見的生物。</li>
+            <li>觀察生物時，不捕捉動物，也不採摘花朵。</li>
+          </ul>
+        </section>
+
+        <button class="primary-button" id="restart-button" type="button">
+          重新挑戰
+        </button>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <p>
+          本遊戲不會收集姓名、分數或其他個人資料。重新整理頁面會重新開始遊戲。
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      "use strict";
+
+      const questions = [
+        {
+          topic: "動物",
+          prompt: "以下哪一樣是有生命的動物？",
+          options: ["麻雀", "石頭", "玩具車"],
+          answer: 0,
+          hint: "想一想：哪一樣會呼吸、成長和自己活動？",
+          explanation: "麻雀是動物。牠會呼吸、成長和活動。",
+          illustrationDescription: "一隻麻雀站在公園草地上。",
+          visual: "bird"
+        },
+        {
+          topic: "植物",
+          prompt: "以下哪一樣是有生命的植物？",
+          options: ["雨傘", "榕樹", "長椅"],
+          answer: 1,
+          hint: "想一想：哪一樣有根、莖和葉，並會慢慢長大？",
+          explanation: "榕樹是植物。它會生長，也需要空氣和水。",
+          illustrationDescription: "公園裏有一棵枝葉茂盛的榕樹。",
+          visual: "tree"
+        },
+        {
+          topic: "生物的共通點",
+          prompt: "麻雀和榕樹有甚麼相同的地方？",
+          options: ["牠們都會飛", "牠們都有生命", "牠們都是玩具"],
+          answer: 1,
+          hint: "麻雀是動物，榕樹是植物。動物和植物都屬於甚麼？",
+          explanation: "動物和植物都是生物，所以都有生命。",
+          illustrationDescription: "麻雀停在榕樹的樹枝上。",
+          visual: "living"
+        },
+        {
+          topic: "非生物",
+          prompt: "以下哪一樣是非生物？",
+          options: ["蝴蝶", "小草", "石頭"],
+          answer: 2,
+          hint: "哪一樣不會呼吸，也不會成長？",
+          explanation: "石頭是非生物。它不會呼吸或成長。",
+          illustrationDescription: "草地旁有一塊灰色石頭。",
+          visual: "rock"
+        },
+        {
+          topic: "生存條件",
+          prompt: "動物和植物生存都需要甚麼？",
+          options: ["電池和電線", "空氣和水", "玩具和紙張"],
+          answer: 1,
+          hint: "我們每天呼吸甚麼，又會飲用甚麼？",
+          explanation: "動物和植物都需要空氣和水才能生存。",
+          illustrationDescription: "清水從水滴落到綠葉上，旁邊有流動的空氣線條。",
+          visual: "water"
+        },
+        {
+          topic: "植物與陽光",
+          prompt: "植物利用陽光來做甚麼？",
+          options: ["製造養分", "變成動物", "發出音樂"],
+          answer: 0,
+          hint: "陽光可以幫助植物取得生長所需的食物。",
+          explanation: "植物利用陽光製造養分，幫助自己成長。",
+          illustrationDescription: "陽光照在一棵正在生長的小植物上。",
+          visual: "sun"
+        },
+        {
+          topic: "香港常見動物",
+          prompt: "以下哪一種動物在香港的公園很常見？",
+          options: ["企鵝", "北極熊", "麻雀"],
+          answer: 2,
+          hint: "留意公園的樹枝和草地，你可能看見哪一種小鳥？",
+          explanation: "麻雀是香港常見的小鳥，公園和街道都可能見到牠。",
+          illustrationDescription: "兩隻麻雀在香港公園的草地上找食物。",
+          visual: "birds"
+        },
+        {
+          topic: "香港常見植物",
+          prompt: "以下哪一種植物在香港的公園很常見？",
+          options: ["沙漠巨人柱", "榕樹", "北極苔蘚"],
+          answer: 1,
+          hint: "哪一種樹有茂密的樹冠，在香港公園經常可以見到？",
+          explanation: "榕樹是香港常見的植物，能為人和動物遮蔭。",
+          illustrationDescription: "一棵大型榕樹在公園裏形成寬闊的樹蔭。",
+          visual: "banyan"
+        },
+        {
+          topic: "動物的特徵",
+          prompt: "以下哪一項是很多動物的共同特徵？",
+          options: [
+            "身上都有樹根",
+            "很多動物能夠自己移動",
+            "身上都有花瓣"
+          ],
+          answer: 1,
+          hint: "想一想小狗走路、小鳥飛行和魚兒游泳。",
+          explanation: "很多動物能夠自己移動，例如走路、飛行或游泳。",
+          illustrationDescription: "小狗走路、小鳥飛行和魚兒游泳。",
+          visual: "movement"
+        },
+        {
+          topic: "動物的構造",
+          prompt: "以下哪一組全是動物可能有的身體部分？",
+          options: ["根、莖和葉", "輪子、電池和車燈", "眼、嘴和腳"],
+          answer: 2,
+          hint: "用手摸摸自己的臉，再想一想小鳥的身體。",
+          explanation: "眼、嘴和腳都是動物可能有的身體部分。",
+          illustrationDescription: "小鳥圖上標示了眼、嘴和腳的位置。",
+          visual: "parts"
+        },
+        {
+          topic: "植物的構造",
+          prompt: "植物的根有甚麼作用？",
+          options: [
+            "根幫助植物飛行",
+            "根固定植物，並吸收水分",
+            "根幫助植物唱歌"
+          ],
+          answer: 1,
+          hint: "根藏在泥土中，會接觸泥土裏的水。",
+          explanation: "根把植物固定在泥土中，也會吸收水分。",
+          illustrationDescription: "泥土下面的植物根部向四周伸展，吸收水分。",
+          visual: "roots"
+        },
+        {
+          topic: "愛護生物",
+          prompt: "在公園看見蝴蝶和花朵時，應該怎樣做？",
+          options: [
+            "捉走蝴蝶，再採下花朵",
+            "追趕和大聲嚇走蝴蝶",
+            "安靜觀察，不捕捉蝴蝶，也不採花"
+          ],
+          answer: 2,
+          hint: "哪一個做法不會傷害蝴蝶和植物？",
+          explanation: "安靜觀察、不捕捉和不採摘，便是尊重和愛護生物。",
+          illustrationDescription: "一名小朋友安靜地觀察花朵旁的蝴蝶。",
+          visual: "care"
+        }
+      ];
+
+      const state = {
+        currentQuestion: 0,
+        score: 0,
+        canScoreCurrentQuestion: true
+      };
+
+      const elements = {
+        homeView: document.getElementById("home-view"),
+        gameView: document.getElementById("game-view"),
+        resultView: document.getElementById("result-view"),
+        startButton: document.getElementById("start-button"),
+        restartButton: document.getElementById("restart-button"),
+        levelNumber: document.getElementById("level-number"),
+        progress: document.getElementById("game-progress"),
+        score: document.getElementById("score-display"),
+        levelHeading: document.getElementById("level-heading"),
+        topic: document.getElementById("topic-label"),
+        illustration: document.getElementById("question-illustration"),
+        form: document.getElementById("question-form"),
+        fieldset: document.getElementById("answer-fieldset"),
+        questionText: document.getElementById("question-text"),
+        answerList: document.getElementById("answer-list"),
+        submitButton: document.getElementById("submit-button"),
+        feedback: document.getElementById("feedback"),
+        resultHeading: document.getElementById("result-heading"),
+        resultScore: document.getElementById("result-score"),
+        resultMessage: document.getElementById("result-message")
+      };
+
+      function saveSetting(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (error) {
+          // Settings remain active for this visit when storage is unavailable.
+        }
+      }
+
+      function applyFontSetting(value, persist) {
+        const root = document.documentElement;
+        root.classList.remove("font-standard", "font-large", "font-xlarge");
+        root.classList.add(`font-${value}`);
+        if (persist) saveSetting("lifeDetectiveFont", value);
+      }
+
+      function applyThemeSetting(value, persist) {
+        const root = document.documentElement;
+        root.classList.remove("theme-light", "theme-dark", "theme-yellow");
+        root.classList.add(`theme-${value}`);
+        if (persist) saveSetting("lifeDetectiveTheme", value);
+      }
+
+      function currentClassValue(prefix, fallback) {
+        const matchingClass = Array.from(
+          document.documentElement.classList
+        ).find((className) => className.startsWith(prefix));
+        return matchingClass ? matchingClass.slice(prefix.length) : fallback;
+      }
+
+      function initialiseSettings() {
+        const activeFont = currentClassValue("font-", "standard");
+        const activeTheme = currentClassValue("theme-", "light");
+        const fontRadio = document.querySelector(
+          `input[name="font-size"][value="${activeFont}"]`
+        );
+        const themeRadio = document.querySelector(
+          `input[name="contrast"][value="${activeTheme}"]`
+        );
+        if (fontRadio) fontRadio.checked = true;
+        if (themeRadio) themeRadio.checked = true;
+
+        document
+          .querySelectorAll('input[name="font-size"]')
+          .forEach((input) => {
+            input.addEventListener("change", () => {
+              applyFontSetting(input.value, true);
+            });
+          });
+
+        document
+          .querySelectorAll('input[name="contrast"]')
+          .forEach((input) => {
+            input.addEventListener("change", () => {
+              applyThemeSetting(input.value, true);
+            });
+          });
+      }
+
+      function showOnly(viewToShow) {
+        [elements.homeView, elements.gameView, elements.resultView].forEach(
+          (view) => {
+            view.hidden = view !== viewToShow;
+          }
+        );
+      }
+
+      function updateScore() {
+        elements.score.textContent =
+          `目前得分：${state.score} 分，共 ${questions.length} 分`;
+      }
+
+      function illustrationSvg(type) {
+        const baseStart =
+          '<svg viewBox="0 0 360 170" aria-hidden="true" focusable="false">' +
+          '<path d="M0 135c90-35 170-9 239-25 48-11 83-3 121 14v46H0Z" fill="var(--leaf-light)"/>';
+        const baseEnd = "</svg>";
+        const visuals = {
+          bird:
+            '<g transform="translate(172 72)"><ellipse rx="53" ry="34" fill="var(--text)"/><circle cx="43" cy="-19" r="25" fill="var(--text)"/><path d="m65-18 34 11-34 13Z" fill="var(--sun)"/><circle cx="51" cy="-24" r="4" fill="var(--surface)"/><path d="M-42-8-83-24l29 38m17 41-4 31m29-32 8 29" fill="none" stroke="var(--text)" stroke-linecap="round" stroke-width="7"/></g>',
+          tree:
+            '<path d="M170 143c11-67 10-87 2-119h38c-7 38-5 74 10 119Z" fill="var(--earth)"/><g fill="var(--leaf)"><circle cx="132" cy="53" r="42"/><circle cx="188" cy="35" r="50"/><circle cx="240" cy="58" r="43"/><circle cx="188" cy="77" r="50"/></g>',
+          living:
+            '<path d="M165 142c8-51 8-70 2-96h29c-5 30-3 57 8 96Z" fill="var(--earth)"/><g fill="var(--leaf)"><circle cx="145" cy="53" r="38"/><circle cx="188" cy="35" r="41"/><circle cx="225" cy="58" r="36"/></g><g transform="translate(250 76) scale(.65)"><ellipse rx="48" ry="31" fill="var(--text)"/><circle cx="41" cy="-17" r="23" fill="var(--text)"/><path d="m61-16 31 11-31 11Z" fill="var(--sun)"/></g>',
+          rock:
+            '<ellipse cx="182" cy="124" rx="83" ry="38" fill="var(--border)"/><path d="m123 117 35-39 57 5 36 42Z" fill="var(--border-soft)"/>',
+          water:
+            '<path d="M155 28c0 0-45 55-45 81a45 45 0 0 0 90 0c0-26-45-81-45-81Z" fill="var(--sky)" stroke="var(--accent)" stroke-width="5"/><path d="M222 62c40-22 69-18 89-3M231 88c29-14 53-12 70-1" fill="none" stroke="var(--text-soft)" stroke-linecap="round" stroke-width="5"/><path d="M145 126c-11-4-17-12-18-25" fill="none" stroke="var(--surface)" stroke-linecap="round" stroke-width="6"/>',
+          sun:
+            '<circle cx="92" cy="50" r="30" fill="var(--sun)"/><g stroke="var(--sun)" stroke-linecap="round" stroke-width="6"><path d="M92 6v15M92 79v15M48 50h15M121 50h15M61 19l11 11M112 80l11 11M61 81l11-11M112 30l11-11"/></g><path d="M220 145v-58" stroke="var(--leaf)" stroke-width="9"/><path d="M219 106c-37-2-48-22-48-22 31-8 48 4 48 22Zm3-26c28-5 40-21 40-21-24-5-38 4-40 21Z" fill="var(--leaf)"/>',
+          birds:
+            '<g transform="translate(120 85) scale(.62)"><ellipse rx="48" ry="31" fill="var(--text)"/><circle cx="41" cy="-17" r="23" fill="var(--text)"/><path d="m61-16 31 11-31 11Z" fill="var(--sun)"/></g><g transform="translate(242 102) scale(.55)"><ellipse rx="48" ry="31" fill="var(--text)"/><circle cx="41" cy="-17" r="23" fill="var(--text)"/><path d="m61-16 31 11-31 11Z" fill="var(--sun)"/></g>',
+          banyan:
+            '<path d="M156 145c14-72 13-90 5-121h48c-6 38-2 78 14 121Z" fill="var(--earth)"/><path d="M172 73c-19 30-35 48-56 64M200 65c16 31 32 50 60 70" fill="none" stroke="var(--earth)" stroke-linecap="round" stroke-width="8"/><g fill="var(--leaf)"><circle cx="90" cy="63" r="47"/><circle cx="145" cy="40" r="55"/><circle cx="211" cy="39" r="58"/><circle cx="275" cy="66" r="49"/><circle cx="180" cy="71" r="62"/></g>',
+          movement:
+            '<path d="M50 73h56m-44 22h38M254 43c22-17 41-15 58-4M263 63c15-9 30-8 42-1" stroke="var(--text-soft)" stroke-linecap="round" stroke-width="5"/><g transform="translate(169 89)"><ellipse rx="49" ry="31" fill="var(--text)"/><circle cx="42" cy="-17" r="23" fill="var(--text)"/><path d="m62-16 31 11-31 11Z" fill="var(--sun)"/><path d="M-20 28-29 55M17 29l4 26" stroke="var(--text)" stroke-linecap="round" stroke-width="7"/></g>',
+          parts:
+            '<g transform="translate(165 86)"><ellipse rx="62" ry="38" fill="var(--text)"/><circle cx="54" cy="-23" r="30" fill="var(--text)"/><path d="m80-22 37 13-37 13Z" fill="var(--sun)"/><circle cx="64" cy="-29" r="5" fill="var(--surface)"/><path d="M-25 34-32 65M25 33l5 30" stroke="var(--text)" stroke-linecap="round" stroke-width="8"/></g><g fill="var(--accent)"><circle cx="229" cy="55" r="6"/><circle cx="279" cy="73" r="6"/><circle cx="197" cy="141" r="6"/></g><g stroke="var(--accent)" stroke-width="3"><path d="m235 55 43-27M285 76l34 5M202 142l31 14"/></g>',
+          roots:
+            '<path d="M180 72V25" stroke="var(--leaf)" stroke-width="10"/><path d="M177 52c-34-2-43-20-43-20 27-7 41 3 43 20Zm6-13c28-5 39-20 39-20-23-5-36 4-39 20Z" fill="var(--leaf)"/><path d="M180 72c-4 28-22 45-51 70m52-69c6 28 27 47 55 68m-57-43-8 59m-18-43-30 18m79-20 31 21" fill="none" stroke="var(--earth)" stroke-linecap="round" stroke-width="6"/><path d="M0 72h360" stroke="var(--border)" stroke-dasharray="8 7" stroke-width="3"/>',
+          care:
+            '<path d="M91 143v-34m0 3c-29-3-36-20-36-20 22-5 34 3 36 20Zm3-14c23-3 32-17 32-17-20-4-30 4-32 17Z" fill="var(--leaf)" stroke="var(--leaf)" stroke-width="5"/><g transform="translate(209 71)"><path d="M0 9C-18-15-42-8-39 14-35 38-8 31 0 15m0-6C18-15 42-8 39 14 35 38 8 31 0 15" fill="var(--sun)" stroke="var(--text)" stroke-width="4"/><path d="M0 5v35" stroke="var(--text)" stroke-width="5"/><path d="m-7 8-16-16m30 16L23-8" stroke="var(--text)" stroke-linecap="round" stroke-width="3"/></g><path d="M262 139c6-36 25-57 53-64m-55 65c-12-25-25-39-45-47" fill="none" stroke="var(--text-soft)" stroke-linecap="round" stroke-width="7"/>'
+        };
+        return baseStart + visuals[type] + baseEnd;
+      }
+
+      function renderQuestion() {
+        const question = questions[state.currentQuestion];
+        const questionNumber = state.currentQuestion + 1;
+
+        elements.levelNumber.textContent = questionNumber;
+        elements.progress.value = questionNumber;
+        elements.levelHeading.textContent =
+          `第 ${questionNumber} 關，共 ${questions.length} 關`;
+        elements.topic.textContent = `學習主題：${question.topic}`;
+        elements.questionText.textContent = question.prompt;
+        elements.illustration.setAttribute(
+          "aria-label",
+          question.illustrationDescription
+        );
+        elements.illustration.innerHTML = illustrationSvg(question.visual);
+        elements.answerList.replaceChildren();
+
+        question.options.forEach((option, index) => {
+          const label = document.createElement("label");
+          label.className = "answer-option";
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = "answer";
+          input.value = String(index);
+          input.addEventListener("change", () => {
+            elements.submitButton.disabled = false;
+          });
+
+          const text = document.createElement("span");
+          text.textContent = option;
+          label.append(input, text);
+          elements.answerList.append(label);
+        });
+
+        elements.fieldset.disabled = false;
+        elements.form.hidden = false;
+        elements.submitButton.hidden = false;
+        elements.submitButton.disabled = true;
+        elements.feedback.hidden = true;
+        elements.feedback.className = "feedback";
+        elements.feedback.replaceChildren();
+        updateScore();
+      }
+
+      function startGame() {
+        state.currentQuestion = 0;
+        state.score = 0;
+        state.canScoreCurrentQuestion = true;
+        showOnly(elements.gameView);
+        renderQuestion();
+        elements.levelHeading.focus();
+      }
+
+      function makeActionButton(label, action) {
+        const button = document.createElement("button");
+        button.className = "primary-button";
+        button.type = "button";
+        button.textContent = label;
+        button.addEventListener("click", action);
+        return button;
+      }
+
+      function showIncorrectFeedback(question) {
+        state.canScoreCurrentQuestion = false;
+        elements.fieldset.disabled = true;
+        elements.form.hidden = true;
+        elements.feedback.className = "feedback incorrect";
+        elements.feedback.hidden = false;
+
+        const title = document.createElement("div");
+        title.className = "feedback-title";
+        title.textContent = "✕ 答錯了";
+        const explanation = document.createElement("p");
+        explanation.textContent = `提示：${question.hint}`;
+        const retryButton = makeActionButton("再試一次", retryQuestion);
+        elements.feedback.replaceChildren(title, explanation, retryButton);
+        elements.feedback.focus();
+      }
+
+      function showCorrectFeedback(question) {
+        elements.fieldset.disabled = true;
+        elements.form.hidden = true;
+        elements.feedback.className = "feedback correct";
+        elements.feedback.hidden = false;
+
+        const title = document.createElement("div");
+        title.className = "feedback-title";
+        title.textContent = "✓ 答對了";
+        const explanation = document.createElement("p");
+        explanation.textContent = question.explanation;
+        const isLastQuestion =
+          state.currentQuestion === questions.length - 1;
+        const nextButton = makeActionButton(
+          isLastQuestion ? "查看結果" : "下一關",
+          isLastQuestion ? finishGame : nextQuestion
+        );
+        elements.feedback.replaceChildren(title, explanation, nextButton);
+        nextButton.focus();
+      }
+
+      function retryQuestion() {
+        elements.feedback.hidden = true;
+        elements.feedback.replaceChildren();
+        elements.form.hidden = false;
+        elements.fieldset.disabled = false;
+        elements.submitButton.hidden = false;
+        elements.submitButton.disabled = true;
+        elements.answerList
+          .querySelectorAll('input[name="answer"]')
+          .forEach((input) => {
+            input.checked = false;
+          });
+        elements.questionText.focus();
+      }
+
+      function submitAnswer(event) {
+        event.preventDefault();
+        const selected = elements.answerList.querySelector(
+          'input[name="answer"]:checked'
+        );
+        if (!selected) return;
+
+        const question = questions[state.currentQuestion];
+        const isCorrect = Number(selected.value) === question.answer;
+        if (!isCorrect) {
+          showIncorrectFeedback(question);
+          return;
+        }
+
+        if (state.canScoreCurrentQuestion) {
+          state.score += 1;
+          updateScore();
+        }
+        showCorrectFeedback(question);
+      }
+
+      function nextQuestion() {
+        state.currentQuestion += 1;
+        state.canScoreCurrentQuestion = true;
+        renderQuestion();
+        elements.levelHeading.focus();
+      }
+
+      function resultMessage() {
+        if (state.score >= 10) {
+          return "你觀察得很仔細，已經成為出色的生命小偵探！";
+        }
+        if (state.score >= 7) {
+          return "做得很好！你已經掌握了大部分生物知識。";
+        }
+        return "你完成了所有任務！再挑戰一次，便能記得更多。";
+      }
+
+      function finishGame() {
+        showOnly(elements.resultView);
+        elements.resultScore.textContent =
+          `你的得分是 ${state.score} 分，共 ${questions.length} 分`;
+        elements.resultMessage.textContent = resultMessage();
+        elements.resultHeading.focus();
+      }
+
+      elements.startButton.addEventListener("click", startGame);
+      elements.restartButton.addEventListener("click", startGame);
+      elements.form.addEventListener("submit", submitAnswer);
+      initialiseSettings();
+    </script>
+  </body>
+</html>
