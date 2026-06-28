@@ -4,7 +4,7 @@
 
 ## 公開遊戲
 
-GitHub Pages 網址會在發佈後填寫於此。
+[https://remtoec.github.io/life-detective-accessible-game/](https://remtoec.github.io/life-detective-accessible-game/)
 
 ## 開啟方法
 
